@@ -1,0 +1,15 @@
+name: 0xawaz_private_eth
+services:
+  eth-node-0:
+    container_name: "eth-node-0"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 0xawaz/geth:v1.14.8
+    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
+    ports:
+      - "8545:8545"
+      - "30303:30303"
+    volumes:
+      - ./data/eth-node-0:/home/ethereum/.ethereum
+    restart: on-failure
