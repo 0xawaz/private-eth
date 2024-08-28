@@ -13,3 +13,31 @@ services:
     volumes:
       - ./data/eth-node-0:/home/ethereum/.ethereum
     restart: on-failure
+
+  eth-node-1:
+    container_name: "eth-node-1"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 0xawaz/geth:v1.14.8
+    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
+    ports:
+      - "8546:8545"
+      - "30313:30303"
+    volumes:
+      - ./data/eth-node-1:/home/ethereum/.ethereum
+    restart: on-failure
+
+  eth-node-2:
+    container_name: "eth-node-2"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 0xawaz/geth:v1.14.8
+    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
+    ports:
+      - "8547:8545"
+      - "30323:30303"
+    volumes:
+      - ./data/eth-node-2:/home/ethereum/.ethereum
+    restart: on-failure
