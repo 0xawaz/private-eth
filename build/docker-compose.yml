@@ -145,7 +145,7 @@ services:
     environment:  
       - PWD=${PWD}
     volumes:
-      - ${PWD}/data/validator.0/consensus:/consensus
+      - ${PWD}/data/validator-0/consensus:/consensus
       - ${PWD}/config/config.yml:/consensus/config.yml
     depends_on:
       beacon:
