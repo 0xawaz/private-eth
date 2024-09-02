@@ -121,7 +121,7 @@ services:
       - CHAIN_ID=939
     volumes:  
       - ${PWD}/data/beacon/consensus:/consensus  
-      - ${PWD}/data/beacon/execution:/execution
+      - ${PWD}/config/config.yml:/execution/config.yml
       - ${PWD}/config/jwt.hex:/execution/jwt.hex
     networks:
       - eth-net
@@ -129,4 +129,24 @@ services:
       beacon-genesis:
         condition: service_completed_successfully
       execution-0:
+        condition: service_started
+
+  validator:
+    container_name: "validator-0"
+    image: "gcr.io/prysmaticlabs/prysm/validator:v5.1.0"
+    command:
+      - --beacon-rpc-provider=beacon:4000
+      - --datadir=/consensus/validatordata
+      - --accept-terms-of-use
+      - --interop-num-validators=64
+      - --interop-start-index=0
+      - --chain-config-file=/consensus/config.yml
+      - --force-clear-db
+    environment:  
+      - PWD=${PWD}
+    volumes:
+      - ${PWD}/data/validator.0/consensus:/consensus
+      - ${PWD}/config/config.yml:/consensus/config.yml
+    depends_on:
+      beacon:
         condition: service_started
