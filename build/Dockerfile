@@ -1,32 +1,29 @@
 # Build Stage
 FROM ethereum/client-go:alltools-v1.14.8
 
-LABEL maintainer="Amina Waddiz (@0xawaz)"
+LABEL maintainer="Amina (@0xawaz)"
 
 ARG UID=1001
 ARG GID=1001
 
-ENV GETH_VERSION=1.14.8
-ENV GETH_DATA=/home/ethereum/.ethereum
-
 RUN apk update && \
-    apk add --no-cache shadow && \
+    apk add --no-cache shadow curl && \
+    mkdir -p /execution /consensus && \
     groupadd --gid ${GID} ethereum && \
     useradd --create-home --no-log-init -u ${UID} -g ${GID} ethereum && \
     apk cache clean && rm -rf /tmp/* /var/tmp/*
 
-WORKDIR /home/ethereum
+# COPY config/jwt.hex /execution/
 
-COPY config/genesis.json $GETH_DATA/
+# COPY config/geth_pass /execution/
 
-COPY scripts/start-geth.sh .
-RUN chown ethereum:ethereum "./start-geth.sh" && \
-    chmod +x ./start-geth.sh
+# RUN chmod 600 /execution/jwt.hex  && \
+#     chmod 600 /execution/geth_pass
 
-USER ethereum
+# USER ethereum
 
-VOLUME ["$GETH_DATA"]
+VOLUME ["/execution", "/consensus"]
 
 EXPOSE 8545 30303
 
-ENTRYPOINT ["/home/ethereum/start-geth.sh"]
+ENTRYPOINT ["geth"]
