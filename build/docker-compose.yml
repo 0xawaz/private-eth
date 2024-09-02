@@ -1,43 +1,132 @@
 name: 0xawaz_private_eth
+networks:
+  eth-net:
+    driver: bridge
+
 services:
-  eth-node-0:
-    container_name: "eth-node-0"
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: 0xawaz/geth:v1.14.8
-    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
-    ports:
-      - "8545:8545"
-      - "30303:30303"
-    volumes:
-      - ./data/eth-node-0:/home/ethereum/.ethereum
-    restart: on-failure
+  data-cleanup:
+    container_name: "data-cleanup"
+    image: "alpine:3.19.0"
+    command: sh -c "echo 'Cleaning up data...' && rm -rf /execution/geth /consensus/genesis.ssz && echo 'Cleanup complete'"
+    environment:  
+      - PWD=${PWD}
+    volumes:  
+      - ${PWD}/data/execution-0:/execution
+      - ${PWD}/data/beacon/consensus:/consensus
+    restart: "no"
 
-  eth-node-1:
-    container_name: "eth-node-1"
-    build:
-      context: .
-      dockerfile: Dockerfile
+  geth-genesis:
+    container_name: "geth-genesis"
     image: 0xawaz/geth:v1.14.8
-    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
-    ports:
-      - "8546:8545"
-      - "30313:30303"
-    volumes:
-      - ./data/eth-node-1:/home/ethereum/.ethereum
-    restart: on-failure
+    command: --datadir=/execution init /execution/genesis.json
+    environment:  
+      - PWD=${PWD}
+    volumes:  
+      - ${PWD}/data/execution-0:/execution
+      - ${PWD}/config/genesis.json:/execution/genesis.json
+    depends_on:
+      data-cleanup:
+        condition: service_completed_successfully
+    restart: "no"
 
-  eth-node-2:
-    container_name: "eth-node-2"
-    build:
-      context: .
-      dockerfile: Dockerfile
+  beacon-genesis:
+    container_name: "beacon-genesis"
+    image: gcr.io/prysmaticlabs/prysm/cmd/prysmctl:v5.1.0
+    command:
+      - testnet
+      - generate-genesis
+      - --num-validators=64
+      - --output-ssz=/consensus/genesis.ssz
+      - --chain-config-file=/consensus/config.yml
+      - --geth-genesis-json-in=/execution/genesis.json
+    environment:  
+      - PWD=${PWD}
+    volumes:  
+      - ${PWD}/data/beacon/consensus:/consensus  
+      - ${PWD}/data/beacon/execution:/execution
+    depends_on:
+      data-cleanup:
+        condition: service_completed_successfully
+    restart: "no"
+
+  execution-0:
+    container_name: "execution-0"
     image: 0xawaz/geth:v1.14.8
-    entrypoint: ["/bin/sh", "-c", "/home/ethereum/start-geth.sh"]
+    command:
+      - --http
+      - --http.api=eth,net,web3,engine,admin
+      - --http.addr=0.0.0.0
+      - --http.corsdomain=*
+      - --ws
+      - --ws.api=eth,net,web3
+      - --ws.addr=0.0.0.0
+      - --ws.origins=*
+      - --authrpc.vhosts=*
+      - --authrpc.addr=0.0.0.0
+      - --authrpc.jwtsecret=/execution/jwt.hex
+      - --datadir=/execution
+      - --allow-insecure-unlock
+      - --unlock=0xF4C11A4D088E57e4B27b657C6BeC99A1C7869C1F
+      - --password=/execution/geth_pass
+      - --nodiscover
+      - --syncmode=full
     ports:
-      - "8547:8545"
-      - "30323:30303"
-    volumes:
-      - ./data/eth-node-2:/home/ethereum/.ethereum
-    restart: on-failure
+      - 8551:8551
+      - 8545:8545
+      - 8546:8546
+    environment:  
+      - PWD=${PWD}
+    volumes:  
+      - ${PWD}/data/execution-0:/execution
+      - ${PWD}/config/jwt.hex:/execution/jwt.hex
+      - ${PWD}/config/geth_pass:/execution/geth_pass
+      - ${PWD}/config/keystore:/execution/keystore
+    networks:
+      - eth-net
+    depends_on:
+      geth-genesis:
+        condition: service_completed_successfully
+
+  beacon:
+    container_name: "beacon"
+    image: gcr.io/prysmaticlabs/prysm/beacon-chain:v5.1.0
+    command:
+      - --datadir=/consensus/beacondata
+      - --min-sync-peers=0
+      - --genesis-state=/consensus/genesis.ssz
+      - --bootstrap-node=
+      - --interop-eth1data-votes
+      - --chain-config-file=/consensus/config.yml
+      - --contract-deployment-block=0
+      - --chain-id=${CHAIN_ID:-999}
+      - --rpc-host=0.0.0.0
+      - --grpc-gateway-host=0.0.0.0
+      - --monitoring-host=0.0.0.0
+      - --execution-endpoint=http://execution-0:8551
+      - --accept-terms-of-use
+      - --jwt-secret=/execution/jwt.hex
+      - --suggested-fee-recipient=0xF4C11A4D088E57e4B27b657C6BeC99A1C7869C1F
+      - --minimum-peers-per-subnet=0
+      - --enable-debug-rpc-endpoints
+      # dev config, remove in prod
+      - --force-clear-db
+    ports:
+      - 4000:4000
+      - 3500:3500
+      - 8080:8080
+      - 6060:6060
+      - 9090:9090
+    environment:  
+      - PWD=${PWD}
+      - CHAIN_ID=939
+    volumes:  
+      - ${PWD}/data/beacon/consensus:/consensus  
+      - ${PWD}/data/beacon/execution:/execution
+      - ${PWD}/config/jwt.hex:/execution/jwt.hex
+    networks:
+      - eth-net
+    depends_on:
+      beacon-genesis:
+        condition: service_completed_successfully
+      execution-0:
+        condition: service_started
