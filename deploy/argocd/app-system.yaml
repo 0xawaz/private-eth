@@ -13,7 +13,7 @@ spec:
     path: deploy/system
   destination:
     server: https://kubernetes.default.svc
-    namespace: web
+    namespace: kube-system
   syncPolicy:
     automated:
       selfHeal: true
