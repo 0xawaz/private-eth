@@ -1,8 +1,4 @@
 name: 0xawaz_private_eth
-networks:
-  eth-net:
-    driver: bridge
-
 services:
   data-cleanup:
     container_name: "data-cleanup"
@@ -11,22 +7,20 @@ services:
     environment:  
       - PWD=${PWD}
     volumes:  
-      - ${PWD}/data/execution-0:/execution
-      - ${PWD}/data/beacon/consensus:/consensus
+      - ${PWD}/data/consensus:/consensus
+      - ${PWD}/data/execution:/execution
     restart: "no"
 
-  geth-genesis:
-    container_name: "geth-genesis"
-    image: 0xawaz/geth:v1.14.8
-    command: --datadir=/execution init /execution/genesis.json
+  config-setup:
+    container_name: "config-setup"
+    image: "alpine:3.19.0"
+    command: sh -c "echo 'Syncing consensus configs...' && cp /config/consensus/config.yml /consensus/ && echo 'Syncing execution configs...' && cp -r /config/execution/. /execution/ && echo 'Config sync complete'"
     environment:  
       - PWD=${PWD}
     volumes:  
-      - ${PWD}/data/execution-0:/execution
-      - ${PWD}/config/genesis.json:/execution/genesis.json
-    depends_on:
-      data-cleanup:
-        condition: service_completed_successfully
+      - ${PWD}/data/consensus:/consensus
+      - ${PWD}/data/execution:/execution
+      - ${PWD}/config:/config
     restart: "no"
 
   beacon-genesis:
@@ -39,13 +33,31 @@ services:
       - --output-ssz=/consensus/genesis.ssz
       - --chain-config-file=/consensus/config.yml
       - --geth-genesis-json-in=/execution/genesis.json
+      - --geth-genesis-json-out=/execution/genesis.json
     environment:  
       - PWD=${PWD}
     volumes:  
-      - ${PWD}/data/beacon/consensus:/consensus  
-      - ${PWD}/data/beacon/execution:/execution
+      - ${PWD}/data/consensus:/consensus
+      - ${PWD}/data/execution:/execution
     depends_on:
       data-cleanup:
+        condition: service_completed_successfully
+      config-setup:
+        condition: service_completed_successfully
+    restart: "no"
+
+  geth-genesis:
+    container_name: "geth-genesis"
+    image: 0xawaz/geth:v1.14.8
+    command: --datadir=/execution init /execution/genesis.json
+    environment:  
+      - PWD=${PWD}
+    volumes:  
+      - ${PWD}/data/execution:/execution
+    depends_on:
+      data-cleanup:
+        condition: service_completed_successfully
+      config-setup:
         condition: service_completed_successfully
     restart: "no"
 
@@ -77,12 +89,7 @@ services:
     environment:  
       - PWD=${PWD}
     volumes:  
-      - ${PWD}/data/execution-0:/execution
-      - ${PWD}/config/jwt.hex:/execution/jwt.hex
-      - ${PWD}/config/geth_pass:/execution/geth_pass
-      - ${PWD}/config/keystore:/execution/keystore
-    networks:
-      - eth-net
+      - ${PWD}/data/execution:/execution
     depends_on:
       geth-genesis:
         condition: service_completed_successfully
@@ -98,7 +105,7 @@ services:
       - --interop-eth1data-votes
       - --chain-config-file=/consensus/config.yml
       - --contract-deployment-block=0
-      - --chain-id=${CHAIN_ID:-999}
+      - --chain-id=939
       - --rpc-host=0.0.0.0
       - --grpc-gateway-host=0.0.0.0
       - --monitoring-host=0.0.0.0
@@ -107,7 +114,6 @@ services:
       - --jwt-secret=/execution/jwt.hex
       - --suggested-fee-recipient=0xF4C11A4D088E57e4B27b657C6BeC99A1C7869C1F
       - --minimum-peers-per-subnet=0
-      - --enable-debug-rpc-endpoints
       # dev config, remove in prod
       - --force-clear-db
     ports:
@@ -118,20 +124,16 @@ services:
       - 9090:9090
     environment:  
       - PWD=${PWD}
-      - CHAIN_ID=939
     volumes:  
-      - ${PWD}/data/beacon/consensus:/consensus  
-      - ${PWD}/config/config.yml:/execution/config.yml
-      - ${PWD}/config/jwt.hex:/execution/jwt.hex
-    networks:
-      - eth-net
+      - ${PWD}/data/consensus:/consensus
+      - ${PWD}/data/execution:/execution
     depends_on:
       beacon-genesis:
         condition: service_completed_successfully
       execution-0:
         condition: service_started
 
-  validator:
+  validator-0:
     container_name: "validator-0"
     image: "gcr.io/prysmaticlabs/prysm/validator:v5.1.0"
     command:
@@ -145,8 +147,7 @@ services:
     environment:  
       - PWD=${PWD}
     volumes:
-      - ${PWD}/data/validator-0/consensus:/consensus
-      - ${PWD}/config/config.yml:/consensus/config.yml
+      - ${PWD}/data/consensus:/consensus
     depends_on:
       beacon:
         condition: service_started
