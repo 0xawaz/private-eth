@@ -797,13 +797,13 @@ grafana.ini:
   log:
     mode: console
   grafana_net:
-    url: https://monitoring.waddiz.io
+    url: https://monitoring.0xawaz.com
   # server:
   #   domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ .Values.ingress.hosts | first }}{{ else }}''{{ end }}"
   ## grafana Authentication can be enabled with the following values on grafana.ini
   server:
     # The full public facing url you use in browser, used for redirects and emails
-    root_url: https://monitoring.waddiz.io
+    root_url: https://monitoring.0xawaz.com
  # https://grafana.com/docs/grafana/latest/auth/github/#enable-github-in-grafana
  # auth.github:
  #    enabled: false
@@ -1257,7 +1257,7 @@ imageRenderer:
 networkPolicy:
   ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources. Only Ingress traffic is filtered for now.
   ##
-  enabled: false
+  enabled: true
   ## @param networkPolicy.allowExternal Don't require client label for connections
   ## The Policy model to apply. When set to false, only pods with the correct
   ## client label will have network access to  grafana port defined.
