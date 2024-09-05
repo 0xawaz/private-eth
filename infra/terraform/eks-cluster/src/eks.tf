@@ -40,12 +40,12 @@ module "eks" {
   # Enable IAM Roles for service accounts
   enable_irsa = true
 
-  # cluster_addons = {
-  #   aws-ebs-csi-driver = {
-  #     service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
-  #     most_recent = true
-  #   }
-  # }
+  cluster_addons = {
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
+      most_recent = true
+    }
+  }
 
   tags = local.tags
 
