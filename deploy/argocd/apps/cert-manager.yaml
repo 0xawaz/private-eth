@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: private-eth
+  source:
+    repoURL: https://charts.jetstack.io 
+    chart: cert-manager
+    targetRevision: v1.14.5
+    helm:
+      valueFiles:
+        - https://raw.githubusercontent.com/0xawaz/private-eth/main/deploy/web/cert-manager/cert-manager-values-v1.14.5.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: web
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
