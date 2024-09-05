@@ -730,19 +730,21 @@ dashboardProviders:
 ##
 ## dashboards per provider, use provider name as key.
 ##
-dashboards:
-  prometheus:
-    nginx-ingress-controller:
-      file: "dashboards/platform/nginx-ingress-controller.json"
+dashboards: 
+  # prometheus:
+  #   nginx-ingress-controller:
+  #     file: "dashboards/platform/nginx-ingress-controller.json"
   kubernetes:
     kubernetes-cluster:
-      file: "dashboards/kubernetes/kubernetes-cluster.json"
-    nodes:
-      file: "dashboards/kubernetes/nodes.json"
-    pods:
-      file: "dashboards/kubernetes/pods.json"
-    statefulsets:
-      file: "dashboards/kubernetes/statefulsets.json"
+      gnetId: 6417
+      revision: 2
+      datasource: Prometheus
+    # nodes:
+    #   file: "dashboards/kubernetes/nodes.json"
+    # pods:
+    #   file: "dashboards/kubernetes/pods.json"
+    # statefulsets:
+    #   file: "dashboards/kubernetes/statefulsets.json"
   # default:
   #   some-dashboard:
   #     json: |
