@@ -1,0 +1,23 @@
+# This replaces serviceMonitor in nginx helm chart
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: lb-nginx-ingress-controller
+  namespace: monitoring
+  labels:
+    app: nginx-ingress
+    release: lb
+    prometheus: k8s
+spec:
+  jobLabel: component
+  selector:
+    matchLabels:
+      app: nginx-ingress
+      component: controller
+      release: lb
+  namespaceSelector:
+    matchNames:
+    - web
+  endpoints:
+  - port: metrics
+    interval: 30s
