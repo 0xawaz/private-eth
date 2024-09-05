@@ -232,7 +232,7 @@ serviceMonitor:
   ##
   enabled: false
   path: /metrics
-  #  namespace: monitoring  (defaults to use the namespace this chart is deployed to)
+  #  namespace: monitor  (defaults to use the namespace this chart is deployed to)
   labels: {}
   interval: 30s
   scheme: http
@@ -1201,7 +1201,7 @@ imageRenderer:
     ##
     enabled: false
     path: /metrics
-    #  namespace: monitoring  (defaults to use the namespace this chart is deployed to)
+    #  namespace: monitor  (defaults to use the namespace this chart is deployed to)
     labels: {}
     interval: 1m
     scheme: http

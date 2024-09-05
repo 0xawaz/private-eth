@@ -5,7 +5,7 @@ metadata:
     app: kube-state-metrics
     prometheus: k8s
   name: kube-state-metrics
-  namespace: monitoring
+  namespace: monitor
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token

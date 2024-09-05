@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: lb-nginx-ingress-controller
-  namespace: monitoring
+  namespace: monitor
   labels:
     app: nginx-ingress
     release: lb
