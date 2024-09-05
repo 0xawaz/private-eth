@@ -12,7 +12,7 @@ public_subnets       = ["10.0.64.0/19", "10.0.96.0/19"]
 cluster_name = "0xawaz-private-eth-eks"
 
 # Node Group
-instance_type       = ["t2.medium"]
+instance_type       = ["t2.large"]
 capacity_type       = "ON_DEMAND"
 
 ng_name             = "eth"
