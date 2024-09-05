@@ -1,0 +1,68 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: exporters-kube-state
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: private-eth
+  source:
+    repoURL: https://github.com/0xawaz/private-eth
+    targetRevision: HEAD
+    path: deploy/monitor/exporters/k8s/kube-state-metrics
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitor
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: exporters-nodes
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: private-eth
+  source:
+    repoURL: https://github.com/0xawaz/private-eth
+    targetRevision: HEAD
+    path: deploy/monitor/exporters/k8s/node
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitor
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: exporters-nginx
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: private-eth
+  source:
+    repoURL: https://github.com/0xawaz/private-eth
+    targetRevision: HEAD
+    path: deploy/monitor/exporters/nginx
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitor
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
