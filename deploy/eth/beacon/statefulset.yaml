@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: eth
+  name: beacon
+  labels:
+    app: beacon
+spec:
+  serviceName: beacon
+  selector:
+    matchLabels:
+      app: beacon
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: beacon
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node_pool
+                operator: In
+                values:
+                - apps
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - beacon
+              topologyKey: kubernetes.io/hostname
+      imagePullSecrets:
+      - name: ecr-creds
+      initContainers:
+      - name: beacon-genesis
+        image: gcr.io/prysmaticlabs/prysm/cmd/prysmctl:v5.1.0
+        imagePullPolicy: Always
+        args:
+        - testnet
+        - generate-genesis
+        - --num-validators=64
+        - --output-ssz=/consensus/genesis.ssz
+        - --chain-config-file=/consensus/config.yml
+        - --geth-genesis-json-in=/execution/genesis.json
+        volumeMounts:
+        - name: data
+          mountPath: /consensus
+        - name: genesis-config
+          mountPath: /execution/genesis.json
+          subPath: genesis.json
+        - name: consensus-config
+          mountPath: /consensus/config.yml
+          subPath: config.yml
+      containers:
+      - name: beacon
+        image: gcr.io/prysmaticlabs/prysm/beacon-chain:v5.1.0
+        imagePullPolicy: Always
+        args:
+        - --datadir=/consensus/beacondata
+        - --min-sync-peers=0
+        - --genesis-state=/consensus/genesis.ssz
+        - --bootstrap-node=
+        - --interop-eth1data-votes
+        - --chain-config-file=/consensus/config.yml
+        - --contract-deployment-block=0
+        - --chain-id=939
+        - --rpc-host=0.0.0.0
+        - --grpc-gateway-host=0.0.0.0
+        - --monitoring-host=0.0.0.0
+        - --execution-endpoint=http://execution-0:8551
+        - --accept-terms-of-use
+        - --jwt-secret=/execution/jwt/jwt.hex
+        - --suggested-fee-recipient=0xF4C11A4D088E57e4B27b657C6BeC99A1C7869C1F
+        - --minimum-peers-per-subnet=0
+        # dev config, remove in prod
+        - --force-clear-db
+        ports:
+        - name: port1
+          containerPort: 4000
+        - name: port2
+          containerPort: 3500
+        - name: port3
+          containerPort: 8080
+        - name: port4
+          containerPort: 6060
+        - name: port5
+          containerPort: 9090
+        resources:
+          requests:
+            cpu: 5m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+        volumeMounts:
+        - name: data
+          mountPath: /consensus
+        - name: genesis-config
+          mountPath: /execution/genesis.json
+          subPath: genesis.json
+        - name: consensus-config
+          mountPath: /consensus/config.yml
+          subPath: config.yml
+        - name: jwt
+          mountPath: /execution/jwt
+          readOnly: true
+      volumes:
+      - name: consensus-config
+        configMap:
+          name: consensus-config
+      - name: genesis-config
+        configMap:
+          name: genesis-config
+      - name: jwt
+        secret:
+          secretName: jwt
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: gp2
