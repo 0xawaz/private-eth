@@ -6,8 +6,9 @@ on:
         - '!build/**.md'
         - '!build/.**'
         - '.github/workflows/build-docker-image.yml'
-    tags:
-        - v*
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 env:
   AWS_REGION: us-east-1
   AWS_ECR_REPOSITORY: 0xawaz/private-eth
