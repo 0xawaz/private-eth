@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: eth
+  name: execution
+  labels:
+    app: execution
+spec:
+  serviceName: execution
+  selector:
+    matchLabels:
+      app: execution
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: execution
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node_pool
+                operator: In
+                values:
+                - apps
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - execution
+              topologyKey: kubernetes.io/hostname
+      imagePullSecrets:
+      - name: ecr-creds
+      initContainers:
+      - name: geth-genesis
+        image: 533267151140.dkr.ecr.us-east-1.amazonaws.com/0xawaz/private-eth:main
+        imagePullPolicy: Always
+        command: ["geth"]
+        args:
+        - --datadir=/execution
+        - init
+        - /execution/genesis.json
+        volumeMounts:
+        - name: data
+          mountPath: /execution
+        - name: genesis-config
+          mountPath: /execution/genesis.json
+          subPath: genesis.json
+      containers:
+      - name: geth
+        image: 533267151140.dkr.ecr.us-east-1.amazonaws.com/0xawaz/private-eth:main
+        imagePullPolicy: Always
+        command: ["geth"]
+        args:
+        - --http
+        - --http.api=eth,net,web3,engine,admin
+        - --http.addr=0.0.0.0
+        - --http.corsdomain=*
+        - --ws
+        - --ws.api=eth,net,web3
+        - --ws.addr=0.0.0.0
+        - --ws.origins=*
+        - --authrpc.vhosts=*
+        - --authrpc.addr=0.0.0.0
+        - --authrpc.jwtsecret=/execution/jwt/jwt.hex
+        - --datadir=/execution
+        # - --allow-insecure-unlock
+        # - --unlock=0xF4C11A4D088E57e4B27b657C6BeC99A1C7869C1F
+        - --password=/execution/geth-pass/password
+        - --nodiscover
+        - --syncmode=full
+        ports:
+        - name: http
+          containerPort: 8551
+        - name: rpc
+          containerPort: 8545
+        - name: p2p
+          containerPort: 30303
+        resources:
+          requests:
+            cpu: 5m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+        volumeMounts:
+        - name: data
+          mountPath: /execution
+        - name: keystore
+          mountPath: /execution/keystore
+        - name: geth-pass
+          mountPath: /execution/geth-pass
+          readOnly: true
+        - name: jwt
+          mountPath: /execution/jwt
+          readOnly: true
+      volumes:
+      - name: genesis-config
+        configMap:
+          name: genesis-config
+      - name: keystore
+        secret:
+          secretName: geth-keystore
+      - name: geth-pass
+        secret:
+          secretName: geth-pass
+      - name: jwt
+        secret:
+          secretName: jwt
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: gp2
