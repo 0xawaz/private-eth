@@ -3,6 +3,21 @@
 ##
 loki:
   enabled: true
+  isDefault: false
+  url: http://{{(include "loki.serviceName" .)}}:{{ .Values.loki.service.port }}
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    initialDelaySeconds: 45
+  datasource:
+    jsonData: "{}"
+    uid: ""
   # ======================== REMOTE STORAGE SETUP FOR DO SPACES ==============================
   # Uncomment the configuration below, to enable remote storage setup for `DO Spaces`
   # Make sure to replace the <> placeholders for the `aws` subsection accordingly
