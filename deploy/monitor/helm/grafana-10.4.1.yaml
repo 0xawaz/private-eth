@@ -609,10 +609,16 @@ datasources:
     datasources:
     - name: prometheus
       type: prometheus
-      url: http://k8s-prometheus.monitoring.svc:9090
+      url: http://prometheus-server.monitor.svc:80
       access: proxy
       editable: true
       isDefault: true
+    - name: loki
+      type: loki
+      url: http://loki-stack.monitor.svc:3100
+      access: proxy
+      editable: true
+      isDefault: false
 
 ## Configure grafana alerting (can be templated)
 ## ref: http://docs.grafana.org/administration/provisioning/#alerting
@@ -730,15 +736,15 @@ dashboardProviders:
 ##
 ## dashboards per provider, use provider name as key.
 ##
-dashboards: 
+dashboards: {}
   # prometheus:
   #   nginx-ingress-controller:
   #     file: "dashboards/platform/nginx-ingress-controller.json"
-  kubernetes:
-    kubernetes-cluster:
-      gnetId: 6417
-      revision: 2
-      datasource: Prometheus
+  # kubernetes:
+  #   kubernetes-cluster:
+  #     gnetId: 6417
+  #     revision: 2
+  #     datasource: Prometheus
     # nodes:
     #   file: "dashboards/kubernetes/nodes.json"
     # pods:
