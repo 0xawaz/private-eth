@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  namespace: eth
+  name: validator
+  labels:
+    app: validator
+spec:
+  serviceName: validator
+  selector:
+    matchLabels:
+      app: validator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: validator
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node_pool
+                operator: In
+                values:
+                - apps
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - validator
+              topologyKey: kubernetes.io/hostname
+      imagePullSecrets:
+      - name: ecr-creds
+      containers:
+      - name: validator
+        image: gcr.io/prysmaticlabs/prysm/validator:v5.1.0
+        imagePullPolicy: Always
+        args:
+        - --beacon-rpc-provider=beacon:4000
+        - --datadir=/consensus/validatordata
+        - --accept-terms-of-use
+        - --interop-num-validators=64
+        - --interop-start-index=0
+        - --chain-config-file=/consensus/config.yml
+        - --force-clear-db
+        resources:
+          requests:
+            cpu: 5m
+            memory: 100Mi
+          limits:
+            memory: 500Mi
+        volumeMounts:
+        - name: data
+          mountPath: /consensus
+        - name: consensus-config
+          mountPath: /consensus/config.yml
+          subPath: config.yml
+      volumes:
+      - name: consensus-config
+        configMap:
+          name: consensus-config
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: gp2
