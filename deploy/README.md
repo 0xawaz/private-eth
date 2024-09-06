@@ -1,5 +1,11 @@
 # Private Ethereum Network on Kubernetes Cluster (EKS)
 
+## Architecture
+
+EKS Platform is the core component of our architecture:
+
+![Platform - Zoom In](Architecture.png)
+
 ## Project structure
 
 ```bash
