@@ -2,6 +2,9 @@ name: Build and publish a Docker image
 on:
   push:
     paths:
+        - 'build/**'
+        - '!build/**.md'
+        - '!build/.**'
         - '.github/workflows/build-docker-image.yml'
     tags:
         - v*
