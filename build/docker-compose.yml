@@ -48,6 +48,9 @@ services:
 
   geth-genesis:
     container_name: "geth-genesis"
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: 0xawaz/geth:v1.14.8
     command: --datadir=/execution init /execution/genesis.json
     environment:  
@@ -63,6 +66,9 @@ services:
 
   execution-0:
     container_name: "execution-0"
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: 0xawaz/geth:v1.14.8
     command:
       - --http
