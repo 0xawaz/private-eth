@@ -27,3 +27,14 @@ This project aims to create a robust infrastructure for Private Etheurem Network
 ### Infra
 
 [infra/README.md](infra/README.md)
+
+### Deploy
+
+[deploy/README.md](deploy/README.md)
+
+## Acknowledgment
+
+I would like to acknowledge the contributions of the open-source community, as this Private Ethereum Network projects is based on the following projects:
+
+* [Ethereum Foundation](https://github.com/ethereum/go-ethereum)
+* [Prysmatic Labs](https://github.com/prysmaticlabs/prysm)
