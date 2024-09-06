@@ -23,10 +23,7 @@
 
 #### IAM Setup
 
-For a secured environment, you need a fine grained IAM policy following the least priviledge principle, for example for terraform you can create:
-- IAM role that allows readOnly, this role can be affected to interns or new hires who do not qualify yet to edit or delete resources.
-- IAM role for that allows read and write, this can be affected to junior devops or any user who can create but not delete resources.
-- Admin IAM role which can be affected to more senior devops that are more qualified to perform deletetion actions.
+For a secured environment, you need a fine grained IAM policy following the least priviledge principle.
 
 For demo purposes, we will use an administrator IAM user (different from root account), this is not recommended for production environment. We recommend to use [IAM Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html).
 
@@ -41,9 +38,8 @@ For demo purposes, we will use an administrator IAM user (different from root ac
 ### Environment Setup
 
 ```sh
-mkdir -p ~/projects
-cd ~/projects
 git clone git@github.com:0xawaz/private-eth.git
+cd private-eth
 # choose the environment you wish to work on, possible values are: staging|prod
 export ENV=staging
 ```
@@ -58,7 +54,7 @@ aws s3api create-bucket --bucket 0xawaz-tfstate --region $REGION
 ### EKS Cluster
 
 ```sh
-cd ~/projects/private-eth/infra/terraform/eks-cluster/src/
+cd infra/terraform/eks-cluster/src
 terraform init
 terraform workspace new $ENV
 terraform workspace select $ENV
@@ -90,6 +86,12 @@ Our infrastructure is a minimal design with simple IaC implementation to demonst
 
 For production environment, we want to control all the configurations especially cross modules versions. We recommend to create our own modules and explicitly specify all resources like: security groups, cni, acl, nat gateway ...
 If we choose to use official terraform modules, we need to keep up with the changelog and be aware of any breaking changes.
+
+## Future Work
+
+  * Create our own modules with advanced configuration for EKS.
+  * Add github workflow for infra deployment processes.
+  * Set up [dynamic credentials](https://aws.amazon.com/blogs/apn/simplify-and-secure-terraform-workflows-on-aws-with-dynamic-provider-credentials/) if using Terraform Cloud.
 
 ## References
 
