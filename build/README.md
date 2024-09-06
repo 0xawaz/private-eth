@@ -32,7 +32,7 @@ docker-compose down
 
 ## Build and Push Docker image
 
-Our docker image is built and pushed to regitry using github workflows.
+Our docker image is built and pushed to ECR registry using [github workflows](../.github/workflows/build-docker-image.yml).
 
 ## Future Work
 
