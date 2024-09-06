@@ -39,5 +39,8 @@ terraform.rc
 # VScode dir
 **/.DS_Store
 
-# data dirs
+# data dirs and secrets
 data/
+.local/
+.dockerconfig.json
+.secrets
