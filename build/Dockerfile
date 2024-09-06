@@ -8,22 +8,17 @@ ARG GID=1001
 
 RUN apk update && \
     apk add --no-cache shadow curl && \
-    mkdir -p /execution /consensus && \
+    mkdir -p /execution && \
     groupadd --gid ${GID} ethereum && \
     useradd --create-home --no-log-init -u ${UID} -g ${GID} ethereum && \
     apk cache clean && rm -rf /tmp/* /var/tmp/*
 
-# COPY config/jwt.hex /execution/
+COPY config/execution/ /execution/
 
-# COPY config/geth_pass /execution/
+RUN chmod 600 /execution/jwt.hex /execution/geth_pass
 
-# RUN chmod 600 /execution/jwt.hex  && \
-#     chmod 600 /execution/geth_pass
+VOLUME ["/execution"]
 
-# USER ethereum
-
-VOLUME ["/execution", "/consensus"]
-
-EXPOSE 8545 30303
+EXPOSE 8551 8545 8546 30303
 
 ENTRYPOINT ["geth"]
