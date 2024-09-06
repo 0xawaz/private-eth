@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: execution
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: private-eth
+  source:
+    repoURL: https://github.com/0xawaz/private-eth
+    targetRevision: HEAD
+    path: deploy/eth/execution
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: eth
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+    - CreateNamespace=true
