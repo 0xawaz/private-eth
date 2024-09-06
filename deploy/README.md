@@ -1,4 +1,4 @@
-# EKS Platform
+# Private Ethereum Network on Kubernetes Cluster (EKS)
 
 ## Project structure
 
