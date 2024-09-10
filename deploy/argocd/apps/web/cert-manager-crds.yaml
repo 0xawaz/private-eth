@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/0xawaz/private-eth
     targetRevision: HEAD
-    path: deploy/web/cert-manager/crds/cert-manager-crds.yaml
+    path: deploy/web/cert-manager/crds
   destination:
     server: https://kubernetes.default.svc
     namespace: web
