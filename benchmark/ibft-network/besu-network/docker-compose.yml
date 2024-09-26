@@ -1,0 +1,126 @@
+name: 0xawaz_ibft-network
+
+services:
+  # data-cleanup:
+  #     container_name: "data-cleanup"
+  #     image: "alpine:3.19.0"
+  #     command: sh -c 'echo "Cleaning up data..." && find /ibft-network/node-*/data -mindepth 1 ! -name "key" ! -name "key.pub" -exec rm -rf {} + && echo "Cleanup complete"'
+  #     volumes:
+  #       - ${PWD}/ibft-network:/ibft-network
+  #     restart: "no"
+
+  besu-node-1:
+    image: hyperledger/besu:latest
+    container_name: besu-node-1
+    volumes:
+      - ./ibft-network/node-1/data:/data
+      - ./ibft-network/genesis.json:/genesis.json
+    command:
+      --data-path=/data
+      --genesis-file=/genesis.json
+      --rpc-http-enabled
+      --rpc-http-host=0.0.0.0
+      --rpc-http-api=ETH,NET,IBFT,ADMIN
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+    networks:
+      0xawaz-network:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "8545:8545"
+      - "30303:30303"
+    # depends_on:
+    #   data-cleanup:
+    #     condition: service_completed_successfully
+    
+
+  besu-node-2:
+    image: hyperledger/besu:latest
+    container_name: besu-node-2
+    volumes:
+      - ./ibft-network/node-2/data:/data
+      - ./ibft-network/genesis.json:/genesis.json
+    command:
+      --data-path=/data
+      --genesis-file=/genesis.json
+      --bootnodes=enode://e7590de1437266d7b7761c27192bfdf2b2bde659307f62e8e446ca1c6c48f19385c6334a60093577ab81b057dd6b8deb79480227a3c0c48ba3c3adf13682c310@172.20.0.10:30303
+      --rpc-http-enabled
+      --rpc-http-host=0.0.0.0
+      --rpc-http-api=ETH,NET,IBFT,ADMIN
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+    # network_mode: "host"
+    networks:
+      0xawaz-network:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "8546:8545"
+      - "30304:30303"
+    depends_on:
+      # data-cleanup:
+      #   condition: service_completed_successfully
+      besu-node-1:
+        condition: service_started
+
+  besu-node-3:
+    image: hyperledger/besu:latest
+    container_name: besu-node-3
+    volumes:
+      - ./ibft-network/node-3/data:/data
+      - ./ibft-network/genesis.json:/genesis.json
+    command:
+      --data-path=/data
+      --genesis-file=/genesis.json
+      --bootnodes=enode://e7590de1437266d7b7761c27192bfdf2b2bde659307f62e8e446ca1c6c48f19385c6334a60093577ab81b057dd6b8deb79480227a3c0c48ba3c3adf13682c310@172.20.0.10:30303
+      --rpc-http-enabled
+      --rpc-http-host=0.0.0.0
+      --rpc-http-api=ETH,NET,IBFT,ADMIN
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+    # network_mode: "host"
+    networks:
+      0xawaz-network:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "8547:8545"
+      - "30305:30303"
+    depends_on:
+      # data-cleanup:
+      #   condition: service_completed_successfully
+      besu-node-1:
+        condition: service_started
+
+  besu-node-4:
+    image: hyperledger/besu:latest
+    container_name: besu-node-4
+    volumes:
+      - ./ibft-network/node-4/data:/data
+      - ./ibft-network/genesis.json:/genesis.json
+    command:
+      --data-path=/data
+      --genesis-file=/genesis.json
+      --bootnodes=enode://e7590de1437266d7b7761c27192bfdf2b2bde659307f62e8e446ca1c6c48f19385c6334a60093577ab81b057dd6b8deb79480227a3c0c48ba3c3adf13682c310@172.20.0.10:30303
+      --rpc-http-enabled
+      --rpc-http-host=0.0.0.0
+      --rpc-http-api=ETH,NET,IBFT,ADMIN
+      --host-allowlist="*"
+      --rpc-http-cors-origins="all"
+    # network_mode: "host"
+    networks:
+      0xawaz-network:
+        ipv4_address: 172.20.0.13
+    ports:
+      - "8548:8545"
+      - "30306:30303"
+    depends_on:
+      # data-cleanup:
+      #   condition: service_completed_successfully
+      besu-node-1:
+        condition: service_started
+
+networks:
+  0xawaz-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
